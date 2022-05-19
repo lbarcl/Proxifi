@@ -12,7 +12,7 @@ app.all('/*', async (req, res) => {
         res.status(400)
         res.send({ 'error-message': 'No provided target or method' })
         return
-    } else if (target == "http://proxifi.ga") {
+    } else if (target.includes("proxifi.ga")) {
         res.status(400)
         res.send({ 'error-message': 'Did you realy think that was a good idea, you realy think that you are smart huh!'})
     }

@@ -1,14 +1,23 @@
-const express = require("express")
-const fetch = require('node-fetch')
-const app = express()
-const PORT = process.env.PORT || 8080
+const express       = require("express")
+const app           = express()
+
+const bodyParser    = require("body-parser")
+const cookieParser  = require("cookie-parser")
+
+const fetch         = require('node-fetch')
+
+const PORT          = process.env.PORT || 8080
 
 app.listen(PORT, console.log('[EXPRESS] Proxy server is now running on port ' + PORT))
-app.all('/*', async (req, res) => {
-    const target = req.query.target || req.headers['x-target']
-    const method = req.query.method || req.method
 
-    if (!target || !method) {
+app.use(bodyParser.raw())
+app.use(cookieParser())
+app.all('/*', async (req, res) => {
+    const target = req.query.target || req.headers['x-target'] || req.cookies.target
+    const method = req.query.method || req.method
+    res.cookie('target', target)
+
+    if (!target) {
         res.status(400)
         res.send({ 'error-message': 'No provided target or method' })
         return
@@ -19,7 +28,7 @@ app.all('/*', async (req, res) => {
 
     const path   = req.originalUrl
     const header = fHeader(req.headers)
-    const body   = req.body
+    const body = (method.toLowerCase() == 'get') ? null : req.body 
     
     try {
         const response = await fetch(target + path, {
@@ -38,6 +47,7 @@ app.all('/*', async (req, res) => {
     } catch (err) {
         res.status(500)
         res.send(err)
+        //console.error(err)
     }
 })
 
